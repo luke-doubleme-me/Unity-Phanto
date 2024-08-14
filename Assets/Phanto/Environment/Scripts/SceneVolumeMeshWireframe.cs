@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Utilities.XR;
 
 /// <summary>
 /// Creates a volume mesh wireframe for the scene.
@@ -17,6 +18,23 @@ public class SceneVolumeMeshWireframe : MonoBehaviour
     [SerializeField] private OVRSceneVolumeMeshFilter volumeMeshFilter;
 
     private Mesh _mesh;
+
+
+    private static List<Vector3> GetClockwiseFloorOutline(OVRSceneRoom sceneRoom)
+    {
+        List<Vector3> cornerPoints = new List<Vector3>();
+
+        var floor = sceneRoom.Floor;
+        var floorTransform = floor.transform;
+
+        foreach (var corner in floor.Boundary)
+        {
+            cornerPoints.Add(floorTransform.TransformPoint(corner));
+        }
+        cornerPoints.Reverse();
+        return cornerPoints;
+    }
+
 
     private IEnumerator Start()
     {
@@ -37,6 +55,8 @@ public class SceneVolumeMeshWireframe : MonoBehaviour
         var c = new Color[triangles.Count];
         var v = new Vector3[triangles.Count];
         var idx = new int[triangles.Count];
+        //Luke S
+        
         for (var i = 0; i < triangles.Count; i++)
         {
             c[i] = new Color(
@@ -46,7 +66,8 @@ public class SceneVolumeMeshWireframe : MonoBehaviour
             v[i] = vertices[triangles[i]];
             idx[i] = i;
         }
-
+        
+        //Luke E
         _mesh = new Mesh
         {
             indexFormat = IndexFormat.UInt32
@@ -58,6 +79,33 @@ public class SceneVolumeMeshWireframe : MonoBehaviour
         _mesh.RecalculateNormals();
 
         meshFilter.sharedMesh = _mesh;
+
+
+        //Luke Start
+        /*
+        var sceneRoom = FindObjectOfType<OVRSceneRoom>();
+
+        if (sceneRoom != null)
+        {
+            var classifications = sceneRoom.GetComponentsInChildren<OVRSemanticClassification>(true);
+
+            var cornerPoints = GetClockwiseFloorOutline(sceneRoom);
+            var volumes = new List<OVRSceneVolume>();
+            var planes = new List<OVRScenePlane>();
+
+            var ceilingHeight = sceneRoom.Ceiling.transform.position.y - sceneRoom.Floor.transform.position.y;
+
+            var rotationRoom = Quaternion.FromToRotation(Vector3.up, new Vector3(1,1,1));
+
+
+            XRGizmos.DrawCube(new Vector3(1, 1, 1), rotationRoom, new Vector3(10, 10, 10), Color.red);
+
+            //XRGizmos.DrawCube(new Vector3(sceneRoom.Floor.transform.position.x, sceneRoom.Floor.transform.position.y, sceneRoom.Floor.transform.position.z), rotationRoom, new Vector3(3, 3, 3), Color.red);
+            //XRGizmos.DrawCube(new Vector3(sceneRoom.Ceiling.transform.position.x, sceneRoom.Ceiling.transform.position.y, sceneRoom.Ceiling.transform.position.z), rotationRoom, new Vector3(10, 12, 12), Color.red);
+            //XRGizmos.DrawCube(new Vector3(sceneRoom.Walls.transform.position.x, sceneRoom.Floor.transform.position.y, sceneRoom.Floor.transform.position.z), rotationRoom, new Vector3(1, 0.5f, 1), Color.red);
+        
+        }
+        */
     }
 
     private void OnDestroy()
